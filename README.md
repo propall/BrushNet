@@ -60,43 +60,56 @@ BrushNet is a diffusion-based text-guided image inpainting model that can be plu
 ![](examples/brushnet/src/model.png)
 
 
-
-## 🚀 Getting Started
+## Installation by Manjunadh
 
 ### Environment Requirement 🌍
 
-BrushNet has been implemented and tested on Pytorch 1.12.1 with python 3.9.
-
-Clone the repo:
-
-```
-git clone https://github.com/TencentARC/BrushNet.git
-```
-
-We recommend you first use `conda` to create virtual environment, and install `pytorch` following [official instructions](https://pytorch.org/). For example:
-
-
-```
-conda create -n diffusers python=3.9 -y
-conda activate diffusers
+```bash
+git clone https://github.com/propall/BrushNet.git
+conda create -n brushnet_env python=3.9 -y
+conda activate brushnet_env
 python -m pip install --upgrade pip
 pip install torch==1.12.1+cu116 torchvision==0.13.1+cu116 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu116
-```
-
-Then, you can install diffusers (implemented in this repo) with:
-
-```
 pip install -e .
-```
 
-After that, you can install required packages thourgh:
-
-```
 cd examples/brushnet/
 pip install -r requirements.txt
+
 ```
 
 ### Data Download ⬇️
+
+```bash
+pip install gdown
+
+To Download Folder (https://drive.google.com/drive/folders/1KBr71RlQEACJPcs2Uoanpi919nISpG1L?usp=sharing)
+use: 
+gdown --folder https://drive.google.com/drive/folders/1KBr71RlQEACJPcs2Uoanpi919nISpG1L
+
+
+Download ckpts for this project:
+
+1) segmentation_mask_brushnet_ckpt [https://drive.google.com/drive/folders/1KPFFYblnovk4MU74OCBfS1EZU_jhBsse?usp=sharing]
+
+2) segmentation_mask_brushnet_ckpt_sdxl_v1 [https://drive.google.com/drive/folders/1KBr71RlQEACJPcs2Uoanpi919nISpG1L?usp=sharing]
+
+3) realisticVisionV60B1_v51VAE [https://drive.google.com/drive/folders/1dQeSFqpQg_NSFLhd3ChuSJCZ0zCSquh8?usp=sharing]
+
+4) random_mask_brushnet_ckpt [https://drive.google.com/drive/folders/1hCYIjeRGx3Zk9WZtQf0s3nDGfeiwqTsN?usp=sharing]
+
+
+wget -O data/ckpt/sam_vit_h_4b8939.pth https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
+gdown --folder https://drive.google.com/drive/folders/1KPFFYblnovk4MU74OCBfS1EZU_jhBsse
+gdown --folder https://drive.google.com/drive/folders/1KBr71RlQEACJPcs2Uoanpi919nISpG1L
+gdown --folder https://drive.google.com/drive/folders/1dQeSFqpQg_NSFLhd3ChuSJCZ0zCSquh8
+gdown --folder https://drive.google.com/drive/folders/1hCYIjeRGx3Zk9WZtQf0s3nDGfeiwqTsN
+
+```
+
+## Testing Process
+```bash
+python examples/brushnet/app_brushnet.py
+```
 
 
 **Dataset**
@@ -115,6 +128,16 @@ You can download the BrushData and BrushBench [here](https://forms.gle/9TgMZ8tm4
     |-- EditBench
         |-- images
         |-- mapping_file.json
+    |-- ckpt
+        |-- segmentation_mask_brushnet_ckpt
+        |-- segmentation_mask_brushnet_ckpt_sdxl_v0
+        |-- realisticVisionV60B1_v51VAE
+            |-- model_index.json
+            |-- vae
+            |-- ...
+        |-- random_mask_brushnet_ckpt
+        |-- random_mask_brushnet_ckpt_sdxl_v0
+        |-- ...
 ```
 
 
@@ -133,7 +156,6 @@ Checkpoints of BrushNet can be downloaded from [here](https://drive.google.com/d
 
 
 The data structure should be like:
-
 
 ```
 |-- data
@@ -241,7 +263,7 @@ python examples/brushnet/test_brushnet.py
 python examples/brushnet/test_brushnet_sdxl.py
 ```
 
-Since BrushNet is trained on Laion, it can only guarantee the performance on general scenarios. We recommend you train on your own data (e.g., product exhibition, virtual try-on) if you have high-quality industrial application requirements. We would also be appreciate if you would like to contribute your trained model!
+Since BrushNet is trained on Laion[https://laion.ai/projects/], it can only guarantee the performance on general scenarios. We recommend you train on your own data (e.g., product exhibition, virtual try-on) if you have high-quality industrial application requirements. We would also be appreciate if you would like to contribute your trained model!
 
 You can also inference through gradio demo:
 
@@ -250,6 +272,10 @@ You can also inference through gradio demo:
 python examples/brushnet/app_brushnet.py
 ```
 
+```
+Updates by Manjunadh
+
+```
 
 ### Evaluation 📏
 
@@ -269,20 +295,6 @@ The `--mask_key` indicates which kind of mask to use, `inpainting_mask` for insi
 
 
 *Noted that you need to ignore the nsfw detector in `src/diffusers/pipelines/brushnet/pipeline_brushnet.py#1261` to get the correct evaluation results. Moreover, we find different machine may generate different images, thus providing the results on our machine [here](https://drive.google.com/drive/folders/1dK3oIB2UvswlTtnIS1iHfx4s57MevWdZ?usp=sharing).*
-
-
-## 🤝🏼 Cite Us
-
-```
-@misc{ju2024brushnet,
-  title={BrushNet: A Plug-and-Play Image Inpainting Model with Decomposed Dual-Branch Diffusion}, 
-  author={Xuan Ju and Xian Liu and Xintao Wang and Yuxuan Bian and Ying Shan and Qiang Xu},
-  year={2024},
-  eprint={2403.06976},
-  archivePrefix={arXiv},
-  primaryClass={cs.CV}
-}
-```
 
 
 ## 💖 Acknowledgement
