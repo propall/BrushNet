@@ -104,6 +104,13 @@ gdown --folder https://drive.google.com/drive/folders/1KBr71RlQEACJPcs2Uoanpi919
 gdown --folder https://drive.google.com/drive/folders/1dQeSFqpQg_NSFLhd3ChuSJCZ0zCSquh8
 gdown --folder https://drive.google.com/drive/folders/1hCYIjeRGx3Zk9WZtQf0s3nDGfeiwqTsN
 
+5) Download BrushNetX
+
+# Download and rename the diffusion_pytorch_model.safetensors file
+huggingface-cli download TencentARC/BrushEdit brushnetX/diffusion_pytorch_model.safetensors --local-dir data/ckpt/ --local-dir-u
+se-symlinks False
+# Download and rename the config.json file
+huggingface-cli download TencentARC/BrushEdit brushnetX/config.json --local-dir data/ckpt --local-dir-use-symlinks False
 ```
 
 ## Testing Process
@@ -272,10 +279,59 @@ You can also inference through gradio demo:
 python examples/brushnet/app_brushnet.py
 ```
 
-```
-Updates by Manjunadh
+### Basic Concepts explained by Manjunadh:
 
-```
+Diffusion models work by gradually adding noise to data (like images) and then learning to reverse this process, allowing them to generate new content by gradually removing noise from random patterns.
+Diffusion model pipelines usually expect a text prompt(what to do), an image and an image mask(indicating which parts of the image should be changed) as input.
+
+Pipeline in Diffusers library combines:
+  * The core models (like the UNet for diffusion)
+  * Text encoder (for processing text prompts)
+  * VAE (Variational Autoencoder, for encoding/decoding images)
+  * Scheduler (for controlling the diffusion process)
+  * Any conditioning models (in this case, BrushNet)
+
+#### Stable Diffusion [check here for more indepth understanding](https://jalammar.github.io/illustrated-stable-diffusion/):
+- It is a latent diffusion model.
+- Latent diffusion models operate in a compressed latent space rather than on full pixel space, making them more efficient.
+- It is a system made up of several components and models and not one monolithic model.
+- It has a text encoder (CLIPText encoder released by OpenAI to be exact, Stable DiffusionV2 used OpenCLIP) that converts text prompts into embeddings.
+- It has an Image Information Creator component that runs for multiple steps to generate image information(this "steps" is a parameter in the Stable Diffusion process) that takes the text embeddings (attention mechanism incorporates the text embeddings into the diffusion process) and generates an image.
+- Image Information Creator works completely in the image information space (or latent space) thus speeding up the imgae generation process many times over conventional diffusion models that work in pixel space.
+- Technically this Image Information Creator is made up of a VAE encoder that encodes the input image, a UNet model (the core model that predicts noise or image content) with a scheduler (the algorithm that determines the noise schedule and sampling strategy during both forward and reverse diffusion process) that is trained to denoise images in the latent space using diffusion process.
+- Different schedulers (DDIM, UniPC, DPM-Solver, etc.) can dramatically affect both quality and speed. 
+- The output of the Image Information Creator is then passed to a Image Decoder(this is the VAE's decoder part, it runs only once at the end after multiple diffusion steps in Image Information Creator component) that converts the latent representation back into pixel space, producing the final image.
+
+The three main components (each with its own neural network) of Stable Diffusion are:
+
+(1) ClipText for text encoding.<br>
+    Input: text.<br>
+    Output: 77 token embeddings vectors, each in 768 dimensions.
+
+(2) UNet + Scheduler to gradually process/diffuse information in the information (latent) space.<br>
+    Input: text embeddings and a starting multi-dimensional array (structured lists of numbers, also called a tensor) made up of noise.<br>
+    Output: A processed information array
+
+(3) Autoencoder Decoder that paints the final image using the processed information array.<br>
+    Input: The processed information array (dimensions: (4,64,64))<br>
+    Output: The resulting image (dimensions: (3, 512, 512) which are (red/green/blue, width, height))
+
+#### Where Does BrushNet Fit?
+- BrushNet is a conditioning model that works alongside the UNet in the Image Information Creator component. 
+- The VAE encoder compresses both the original image and the masked image into latent space.
+- The diffusion process begins with the UNet, guided by text embeddings from CLIP
+- BrushNet provides additional conditioning information to the UNet at each diffusion step that helps the UNet generate content that both matches the text prompt and seamlessly integrates with the unmasked portions
+- Thus, BrushNet modifies the UNet's behavior through "cross-attention" that is implemented through skip connections or additional feature maps that get incorporated into the UNet's internal processing. 
+- In BrushNet, we use UniPCMultistepScheduler.
+
+#### What is BrushNet's Decomposed Dual-branch Diffusion approach?
+
+Imagine you're trying to repair a torn painting. You'd need to consider two main challenges:
+1) Creating new content that matches what was originally there
+2) Making sure this new content blends seamlessly with the existing parts
+
+"Decomposed dual-branch diffusion" is like having two art experts working together on this restoration problem - each focusing on a different aspect of the challenge. Decomposed indicates the two subtasks are independent of each other.
+
 
 ### Evaluation 📏
 

@@ -5,19 +5,20 @@ import numpy as np
 from PIL import Image
 
 # choose the base model here
-base_model_path = "data/ckpt/juggernautXL_juggernautX"
+base_model_path = "data/ckpt/realisticVisionV60B1_v51VAE"
 # base_model_path = "stabilityai/stable-diffusion-xl-base-1.0"
 
 # input brushnet ckpt path
-brushnet_path = "data/ckpt/segmentation_mask_brushnet_ckpt_sdxl_v0"
+brushnet_path = "data/ckpt/segmentation_mask_brushnet_ckpt"
+# brushnet_path = "data/ckpt/segmentation_mask_brushnet_ckpt_sdxl_v0"
 
 # choose whether using blended operation
-blended = False
+blended = True
 
 # input source image / mask image path and the text prompt
-image_path="examples/brushnet/src/test_image.jpg"
-mask_path="examples/brushnet/src/test_mask.jpg"
-caption="A cake on the table."
+image_path="../../inpainting_test_images/test1.png"
+mask_path="../../inpainting_test_images/og_mask_test1_cleaned.png"
+caption="change the flooring to pure white marble with no patterns"
 
 # conditioning scale
 brushnet_conditioning_scale=1.0

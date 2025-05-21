@@ -9,7 +9,17 @@ from segment_anything import SamPredictor, sam_model_registry
 import torch
 from diffusers import StableDiffusionBrushNetPipeline, BrushNetModel, UniPCMultistepScheduler
 import random
+"""
+Code Overview:
+- Gradio-based web application interface that demonstrates BrushNet, a model designed for image inpainting.
+- Contains clicking based segmentation using default SAM model(not SAM2, it is ViT-H SAM model) to select regions of the image for inpainting.
+- base_model_path refers to the path of Stabe Diffusion model checkpoint.
+- brushnet_path refers to the path of BrushNet model checkpoint(here its BrushNetX).
+- After loading the base model with BrushNet as conditioning model using "StableDiffusionBrushNetPipeline", the scheduler is overridden with "UniPCMultistepScheduler" probably for a faster inference.
+- The "brushnet_conditioning_scale" parameter controls how strongly the BrushNet model influences the generation process
 
+Note: Please go through the README's Basic Concepts explained by Manjunadh section for more details.
+"""
 mobile_sam = sam_model_registry['vit_h'](checkpoint='data/ckpt/sam_vit_h_4b8939.pth').to("cuda")
 mobile_sam.eval()
 mobile_predictor = SamPredictor(mobile_sam)
@@ -32,7 +42,8 @@ base_model_path = "data/ckpt/realisticVisionV60B1_v51VAE"
 # base_model_path = "runwayml/stable-diffusion-v1-5"
 
 # input brushnet ckpt path
-brushnet_path = "data/ckpt/segmentation_mask_brushnet_ckpt"
+# brushnet_path = "data/ckpt/segmentation_mask_brushnet_ckpt"
+brushnet_path = "data/ckpt/brushnetX"
 
 brushnet = BrushNetModel.from_pretrained(brushnet_path, torch_dtype=torch.float16)
 pipe = StableDiffusionBrushNetPipeline.from_pretrained(
@@ -251,6 +262,7 @@ with block:
         [input_image, original_image, selected_points]
     )
 
+    #### Part of Default SAM1 based segmentation 
     # user click the image to get points, and show the points on the image
     def segmentation(img, sel_pix):
         # online show seg mask
