@@ -25,14 +25,18 @@ Keywords: Image Inpainting, Diffusion Models, Image Generation
   - [🔥 Update Log](#-update-log)
   - [TODO](#todo)
   - [🛠️ Method Overview](#️-method-overview)
-  - [🚀 Getting Started](#-getting-started)
+  - [Installation by Manjunadh](#installation-by-manjunadh)
     - [Environment Requirement 🌍](#environment-requirement-)
     - [Data Download ⬇️](#data-download-️)
+  - [Testing Process](#testing-process)
   - [🏃🏼 Running Scripts](#-running-scripts)
     - [Training 🤯](#training-)
     - [Inference 📜](#inference-)
+    - [Basic Concepts explained by Manjunadh:](#basic-concepts-explained-by-manjunadh)
+      - [Stable Diffusion check here for more indepth understanding:](#stable-diffusion-check-here-for-more-indepth-understanding)
+      - [Where Does BrushNet Fit?](#where-does-brushnet-fit)
+      - [What is BrushNet's Decomposed Dual-branch Diffusion approach?l](#what-is-brushnets-decomposed-dual-branch-diffusion-approachl)
     - [Evaluation 📏](#evaluation-)
-  - [🤝🏼 Cite Us](#-cite-us)
   - [💖 Acknowledgement](#-acknowledgement)
 
 
@@ -104,7 +108,7 @@ gdown --folder https://drive.google.com/drive/folders/1KBr71RlQEACJPcs2Uoanpi919
 gdown --folder https://drive.google.com/drive/folders/1dQeSFqpQg_NSFLhd3ChuSJCZ0zCSquh8
 gdown --folder https://drive.google.com/drive/folders/1hCYIjeRGx3Zk9WZtQf0s3nDGfeiwqTsN
 
-5) Download BrushNetX
+5) Download BrushNetX (Run these commands from BrushNet repo's home, dont cd to any of the folders, run it directly)
 
 # Download and rename the diffusion_pytorch_model.safetensors file
 huggingface-cli download TencentARC/BrushEdit brushnetX/diffusion_pytorch_model.safetensors --local-dir data/ckpt/ --local-dir-u

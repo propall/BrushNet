@@ -143,7 +143,8 @@ runs
 /examples/rag/sweep
 
 # data
-/data
+/data/ckpt
+/data/render_dataset
 serialization_dir
 
 # emacs
