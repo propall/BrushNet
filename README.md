@@ -324,8 +324,7 @@ The three main components (each with its own neural network) of Stable Diffusion
 - Thus, BrushNet modifies the UNet's behavior through "cross-attention" that is implemented through skip connections or additional feature maps that get incorporated into the UNet's internal processing. 
 - In BrushNet, we use UniPCMultistepScheduler.
 
-#### What is BrushNet's Decomposed Dual-branch Diffusion approach?
-
+#### What is BrushNet's Decomposed Dual-branch Diffusion approach?l
 Imagine you're trying to repair a torn painting. You'd need to consider two main challenges:
 1) Creating new content that matches what was originally there
 2) Making sure this new content blends seamlessly with the existing parts
