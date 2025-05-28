@@ -7,6 +7,7 @@ import torch
 from torch.utils.data import Dataset
 from PIL import Image, ImageDraw
 import math
+import glob
 
 class CustomBrushNetDataset(Dataset):
     """
@@ -15,6 +16,8 @@ class CustomBrushNetDataset(Dataset):
     ├── images/
     ├── masks/
     └── captions.json
+    
+    Now handles different file extensions intelligently!
     """
     
     def __init__(self, dataset_dir, resolution=512, tokenizer=None, random_mask=False):
@@ -30,20 +33,127 @@ class CustomBrushNetDataset(Dataset):
         with open(self.captions_file, 'r') as f:
             self.captions = json.load(f)
         
+        print(f"Loaded {len(self.captions)} caption entries from {self.captions_file}")
+        
         # Get list of image files that have both image and mask
         self.image_files = []
-        for img_name in self.captions.keys():
-            img_path = os.path.join(self.images_dir, img_name)
-            # Create mask filename by adding "mask_" prefix
-            mask_name = f"mask_{img_name}"
-            mask_path = os.path.join(self.masks_dir, mask_name)
-            
-            if os.path.exists(img_path) and os.path.exists(mask_path):
-                self.image_files.append(img_name)
-            else:
-                print(f"Warning: Missing files for {img_name}")
+        self._find_matching_pairs()
         
         print(f"Found {len(self.image_files)} valid image-mask-caption triplets")
+        
+        if len(self.image_files) == 0:
+            print("ERROR: No matching image-mask pairs found!")
+            self._debug_file_matching()
+    
+    def _find_matching_pairs(self):
+        """
+        Intelligently find matching image-mask pairs, handling different file extensions
+        """
+        # Create a mapping of all available mask files by their base names
+        mask_files_map = {}
+        
+        # Look for mask files with common extensions
+        for ext in ['*.png', '*.jpg', '*.jpeg', '*.PNG', '*.JPG', '*.JPEG']:
+            mask_pattern = os.path.join(self.masks_dir, ext)
+            for mask_path in glob.glob(mask_pattern):
+                mask_filename = os.path.basename(mask_path)
+                # Extract the base name (remove the "mask_" prefix if present)
+                if mask_filename.startswith('mask_'):
+                    # Get the part after "mask_" and remove extension
+                    base_name = mask_filename[5:]  # Remove "mask_" prefix
+                    base_name_no_ext = os.path.splitext(base_name)[0]
+                    mask_files_map[base_name_no_ext] = mask_path
+                    # Also try with the original extension from image
+                    mask_files_map[base_name] = mask_path
+        
+        print(f"Found {len(mask_files_map)} mask files")
+        if len(mask_files_map) > 0:
+            print(f"Sample mask mappings: {list(mask_files_map.items())[:3]}")
+        
+        # Now try to match each caption entry with image and mask
+        for img_name in self.captions.keys():
+            img_path = os.path.join(self.images_dir, img_name)
+            
+            # Check if image exists
+            if not os.path.exists(img_path):
+                print(f"Warning: Image not found: {img_path}")
+                continue
+            
+            # Try to find corresponding mask
+            mask_path = None
+            
+            # Strategy 1: Look for mask using the full filename (with extension)
+            if img_name in mask_files_map:
+                mask_path = mask_files_map[img_name]
+            
+            # Strategy 2: Look for mask using just the base name (without extension)
+            if mask_path is None:
+                base_name = os.path.splitext(img_name)[0]  # Remove extension from img_name
+                if base_name in mask_files_map:
+                    mask_path = mask_files_map[base_name]
+            
+            # Strategy 3: Direct file checking with different extensions
+            if mask_path is None:
+                base_name = os.path.splitext(img_name)[0]
+                for ext in ['.png', '.jpg', '.jpeg', '.PNG', '.JPG', '.JPEG']:
+                    potential_mask = os.path.join(self.masks_dir, f"mask_{base_name}{ext}")
+                    if os.path.exists(potential_mask):
+                        mask_path = potential_mask
+                        break
+            
+            # If we found both image and mask, add to valid files
+            if mask_path and os.path.exists(mask_path):
+                self.image_files.append({
+                    'name': img_name,
+                    'image_path': img_path,
+                    'mask_path': mask_path
+                })
+                print(f"✓ Matched: {img_name} -> {os.path.basename(mask_path)}")
+            else:
+                print(f"✗ No mask found for: {img_name}")
+    
+    def _debug_file_matching(self):
+        """
+        Provide detailed debugging information when no matches are found
+        """
+        print("\n" + "="*60)
+        print("DEBUGGING FILE MATCHING ISSUES")
+        print("="*60)
+        
+        print(f"\n1. Checking directories:")
+        print(f"   Images dir exists: {os.path.exists(self.images_dir)}")
+        print(f"   Masks dir exists: {os.path.exists(self.masks_dir)}")
+        
+        if os.path.exists(self.images_dir):
+            image_files = os.listdir(self.images_dir)
+            print(f"\n2. Found {len(image_files)} files in images directory:")
+            for f in image_files[:5]:  # Show first 5
+                print(f"   {f}")
+            if len(image_files) > 5:
+                print(f"   ... and {len(image_files) - 5} more")
+        
+        if os.path.exists(self.masks_dir):
+            mask_files = os.listdir(self.masks_dir)
+            print(f"\n3. Found {len(mask_files)} files in masks directory:")
+            for f in mask_files[:5]:  # Show first 5
+                print(f"   {f}")
+            if len(mask_files) > 5:
+                print(f"   ... and {len(mask_files) - 5} more")
+        
+        print(f"\n4. Sample caption entries:")
+        for i, (key, value) in enumerate(list(self.captions.items())[:3]):
+            print(f"   '{key}': '{value}'")
+        
+        print(f"\n5. Expected matching pattern:")
+        if len(self.captions) > 0:
+            sample_key = list(self.captions.keys())[0]
+            expected_image = os.path.join(self.images_dir, sample_key)
+            expected_mask_base = os.path.splitext(sample_key)[0]
+            print(f"   For caption key '{sample_key}':")
+            print(f"   Looking for image: {expected_image}")
+            print(f"   Looking for mask: mask_{expected_mask_base}.[png|jpg|jpeg]")
+        
+        print("="*60 + "\n")
     
     def __len__(self):
         return len(self.image_files)
@@ -122,17 +232,22 @@ class CustomBrushNetDataset(Dataset):
         return inputs.input_ids[0]  # Remove batch dimension
     
     def __getitem__(self, idx):
-        img_name = self.image_files[idx]
+        # Get file information for this index
+        file_info = self.image_files[idx]
+        img_name = file_info['name']
+        img_path = file_info['image_path']
+        mask_path = file_info['mask_path']
         
         # Load image
-        img_path = os.path.join(self.images_dir, img_name)
         image = cv2.imread(img_path)
+        if image is None:
+            raise ValueError(f"Could not load image: {img_path}")
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         
         # Load mask
-        mask_name = f"mask_{img_name}"
-        mask_path = os.path.join(self.masks_dir, mask_name)
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+        if mask is None:
+            raise ValueError(f"Could not load mask: {mask_path}")
         
         # Convert binary mask (0-255) to float mask (0-1)
         mask = (mask > 127).astype(np.float32)[:, :, np.newaxis]

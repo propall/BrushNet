@@ -63,7 +63,7 @@ def parse_args(input_args=None):
         "--pretrained_model_name_or_path",
         type=str,
         default="data/ckpt/realisticVisionV60B1_v51VAE",
-        required=True,
+        # required=True,
         help="Path to pretrained model or model identifier from huggingface.co/models.",
     )
     parser.add_argument(
@@ -77,7 +77,7 @@ def parse_args(input_args=None):
         "--revision",
         type=str,
         default=None,
-        required=False,
+        # required=False,
         help="Revision of pretrained model identifier from huggingface.co/models.",
     )
     parser.add_argument(
@@ -92,7 +92,7 @@ def parse_args(input_args=None):
         "--dataset_dir",
         type=str,
         default="data/render_dataset",
-        required=True,
+        # required=True,
         help=(
             "Path to the dataset directory containing 'images/', 'masks/', and 'captions.json'. "
             "This replaces the webdataset functionality with a simpler folder structure."
@@ -415,6 +415,32 @@ def main(args):
     vae.to(accelerator.device, dtype=weight_dtype)
     unet.to(accelerator.device, dtype=weight_dtype)
     text_encoder.to(accelerator.device, dtype=weight_dtype)
+
+    if accelerator.is_main_process:
+        # Create a configuration dictionary for logging
+        tracker_config = dict(vars(args))
+        
+        # Remove list-type arguments that tensorboard can't handle
+        # These cause serialization issues in some logging backends
+        if 'validation_prompt' in tracker_config:
+            tracker_config.pop('validation_prompt')
+        if 'validation_image' in tracker_config:
+            tracker_config.pop('validation_image')  
+        if 'validation_mask' in tracker_config:
+            tracker_config.pop('validation_mask')
+        
+        # Initialize the trackers with our project configuration
+        # This is the crucial step that was missing!
+        accelerator.init_trackers(
+            project_name="brushnet-finetuning",  # You can customize this name
+            config=tracker_config
+        )
+
+
+
+
+
+
 
     # Training info
     total_batch_size = args.train_batch_size * accelerator.num_processes * args.gradient_accumulation_steps

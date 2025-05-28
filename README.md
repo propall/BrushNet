@@ -281,6 +281,27 @@ You can also inference through gradio demo:
 ```
 # sd v1.5
 python examples/brushnet/app_brushnet.py
+
+
+python examples/brushnet/train_brushnet_custom.py \
+  --pretrained_model_name_or_path="data/ckpt/realisticVisionV60B1_v51VAE" \
+  --dataset_dir="data/render_dataset" \
+  --output_dir="./output/brushnet-floor-finetuned" \
+  --resolution=512 \
+  --train_batch_size=4 \
+  --gradient_accumulation_steps=1 \
+  --learning_rate=5e-6 \
+  --lr_scheduler="constant" \
+  --lr_warmup_steps=0 \
+  --num_train_epochs=50 \
+  --checkpointing_steps=500 \
+  --validation_steps=500 \
+  --mixed_precision="fp16" \
+  --dataloader_num_workers=4 \
+  --enable_xformers_memory_efficient_attention
+
+
+pip install xformers
 ```
 
 ### Basic Concepts explained by Manjunadh:

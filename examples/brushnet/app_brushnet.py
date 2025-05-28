@@ -43,7 +43,7 @@ base_model_path = "data/ckpt/realisticVisionV60B1_v51VAE"
 
 # input brushnet ckpt path
 # brushnet_path = "data/ckpt/segmentation_mask_brushnet_ckpt"
-brushnet_path = "data/ckpt/brushnetX"
+brushnet_path = "data/ckpt/brushnetX-finetuned"
 
 brushnet = BrushNetModel.from_pretrained(brushnet_path, torch_dtype=torch.float16)
 pipe = StableDiffusionBrushNetPipeline.from_pretrained(

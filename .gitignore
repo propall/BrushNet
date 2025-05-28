@@ -145,6 +145,11 @@ runs
 # data
 /data/ckpt
 /data/render_dataset
+/data/propall_testdata
+/data/BrushBench
+/data/BrushData
+
+
 serialization_dir
 
 # emacs
